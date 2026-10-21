@@ -1,0 +1,19 @@
+# GitHub switches off scheduled workflows in a repo with no activity for 60 days. An empty commit on the
+# first of each month keeps the social scheduler running.
+name: Keep the scheduler alive
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name "Studio Nine scheduler"
+          git config user.email "simon@studionine.agency"
+          git commit --allow-empty -m "Keep the scheduler alive ($(date -u +%Y-%m))"
+          git push
