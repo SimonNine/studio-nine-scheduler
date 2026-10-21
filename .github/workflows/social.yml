@@ -1,0 +1,24 @@
+# Studio Nine social scheduler: every 5 minutes, ask studionine.agency to move any due sends one step
+# (create → process → publish on Instagram / LinkedIn). The work happens on the site; this only knocks.
+# The site checks the Bearer secret (CRON_SECRET, a repo secret here, the same value as on Vercel).
+name: Social scheduler
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: social-scheduler
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Run the scheduler
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -sS -o out.json -w '%{http_code}' --max-time 90 \
+            -H "Authorization: Bearer $CRON_SECRET" https://studionine.agency/admin/api/cron/social)
+          cat out.json; echo
+          test "$code" = "200"
